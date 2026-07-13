@@ -1,3 +1,5 @@
+// @effect-diagnostics preferSchemaOverJson:off - test fixtures write raw .bgsd JSON on disk.
+// @effect-diagnostics globalDateInEffect:off - fixtures set explicit mtimes.
 import type { BgsdWorkspaceSnapshot } from "@t3tools/contracts";
 import { assert, describe, it } from "@effect/vitest";
 import * as NodeServices from "@effect/platform-node/NodeServices";

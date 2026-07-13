@@ -1,3 +1,4 @@
+// @effect-diagnostics preferSchemaOverJson:off - test fixtures write raw remote.json on disk.
 import { assert, describe, it } from "@effect/vitest";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Duration from "effect/Duration";
