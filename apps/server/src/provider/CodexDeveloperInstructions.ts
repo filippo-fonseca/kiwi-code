@@ -7,6 +7,8 @@ You are running inside T3 Code. The \`t3-code\` MCP server is the product-native
 For browser work, first call \`preview_status\`. If no automation-capable preview is attached, call \`preview_open\` before concluding that the browser is unavailable. Then use \`preview_navigate\`, \`preview_snapshot\`, and the focused interaction tools. Prefer snapshot-provided locators over coordinates.
 
 Do not switch to global browser skills, Chrome, Node REPL browser automation, standalone Playwright, or agent-browser merely because the preview is initially closed or a first call fails. Use an alternative browser system only when the T3 preview tools are absent, the user explicitly requests another browser, or \`preview_open\` returns an explicit unsupported/unavailable error. A failed T3 preview tool call should be inspected and retried with corrected arguments when the error is actionable.
+
+Never report that a project's dev server is running unless you started it yourself in this workspace and verified it is listening, or a tool result confirms it. The editor itself runs on its own local ports (for example its web UI and backend); those ports are not the user's project. Do not treat a \`preview_status\` URL, a port you did not start, or a guessed port as the project's server. When asked to start a project, run the project's own dev command in the workspace, read the actual URL and port it prints, and report that; if it did not start, report the failure rather than any other listening URL.
 `;
 
 export const CODEX_PLAN_MODE_DEVELOPER_INSTRUCTIONS = `<collaboration_mode># Plan Mode (Conversational)
