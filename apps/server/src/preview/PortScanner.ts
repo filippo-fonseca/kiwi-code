@@ -10,6 +10,10 @@
  *
  * Polling is reference-counted via scoped `retain`. A single layer-scoped fiber
  * polls forever, but each tick is a no-op when the retain count is zero.
+ *
+ * The editor's own listening ports (its backend HTTP/API port, and in dev the
+ * separate Vite web dev-server port) are always excluded from the discovered
+ * set, so the editor never presents itself as a candidate project dev server.
  */
 import { ThreadId, type DiscoveredLocalServer } from "@t3tools/contracts";
 import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
@@ -24,6 +28,7 @@ import * as Ref from "effect/Ref";
 import * as Schedule from "effect/Schedule";
 import * as Scope from "effect/Scope";
 
+import * as ServerConfig from "../config.ts";
 import * as ProcessRunner from "../processRunner.ts";
 
 export class PortDiscovery extends Context.Service<
@@ -49,6 +54,46 @@ export class PortDiscovery extends Context.Service<
 export const COMMON_DEV_PORTS: ReadonlyArray<number> = Object.freeze([
   3000, 3001, 3333, 4173, 4200, 4321, 5000, 5173, 5174, 5175, 5500, 8000, 8080, 8081, 8888, 9000,
 ]);
+
+/**
+ * Ports the editor itself listens on and must never surface as a candidate
+ * project dev server. This is the editor's backend HTTP/API port (always) plus,
+ * in dev, the separate Vite web dev-server port carried on `devUrl` (for
+ * example `http://localhost:5733`). In packaged mode the web app is served by
+ * the backend on the same port, so `port` alone covers it.
+ *
+ * A `port` of `0` means "OS-assigned / not yet bound" and is ignored so we never
+ * accidentally exclude a real project server that happened to land on port 0.
+ */
+export const selfListeningPorts = (config: {
+  readonly port: number;
+  readonly devUrl: URL | undefined;
+}): ReadonlySet<number> => {
+  const ports = new Set<number>();
+  if (Number.isInteger(config.port) && config.port > 0) {
+    ports.add(config.port);
+  }
+  if (config.devUrl !== undefined) {
+    const devPort = Number.parseInt(config.devUrl.port, 10);
+    if (Number.isInteger(devPort) && devPort > 0) {
+      ports.add(devPort);
+    }
+  }
+  return ports;
+};
+
+/**
+ * Drop any discovered server whose port belongs to the editor itself. Applied
+ * to every scan result (lsof, Windows listeners, and the common-port fallback)
+ * so the exclusion holds regardless of the detection path.
+ */
+export const excludeSelfPorts = (
+  servers: ReadonlyArray<DiscoveredLocalServer>,
+  selfPorts: ReadonlySet<number>,
+): ReadonlyArray<DiscoveredLocalServer> => {
+  if (selfPorts.size === 0) return servers;
+  return servers.filter((server) => !selfPorts.has(server.port));
+};
 
 const POLL_INTERVAL = Duration.seconds(3);
 const LSOF_TIMEOUT_MS = 5_000;
@@ -190,6 +235,10 @@ export const make = Effect.gen(function* PortDiscoveryMake() {
   const net = yield* Net.NetService;
   const processRunner = yield* ProcessRunner.ProcessRunner;
   const hostPlatform = yield* HostProcessPlatform;
+  const config = yield* ServerConfig.ServerConfig;
+  // Resolved once at layer construction: the editor's own listen ports are
+  // fixed for the process lifetime, so there is no need to recompute per scan.
+  const selfPorts = selfListeningPorts(config);
   const stateRef = yield* Ref.make<ScannerState>({
     lastSnapshot: [],
     listeners: new Set(),
@@ -229,7 +278,7 @@ export const make = Effect.gen(function* PortDiscoveryMake() {
         platform: hostPlatform,
       }).pipe(Effect.as(null));
 
-  const scanOnce = Effect.fn("PortDiscovery.scan")(function* () {
+  const scanOnceRaw = Effect.fn("PortDiscovery.scanRaw")(function* () {
     const state = yield* Ref.get(stateRef);
     const terminalByProcessId = new Map<number, TerminalProcessOwner>();
     for (const registration of state.terminalProcesses.values()) {
@@ -283,6 +332,14 @@ export const make = Effect.gen(function* PortDiscoveryMake() {
       );
     if (lsofResult !== null) return lsofResult;
     return yield* probeCommonPorts();
+  });
+
+  // The editor must never advertise its own listening ports as a candidate
+  // project dev server, so every scan result is filtered before it leaves the
+  // scanner (covers lsof, Windows listeners, and the common-port fallback).
+  const scanOnce = Effect.fn("PortDiscovery.scan")(function* () {
+    const raw = yield* scanOnceRaw();
+    return excludeSelfPorts(raw, selfPorts);
   });
 
   const broadcast = Effect.fn("PortDiscovery.broadcast")(function* (

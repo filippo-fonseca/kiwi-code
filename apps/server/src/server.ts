@@ -238,6 +238,9 @@ const CheckpointingLayerLive = Layer.empty.pipe(
   Layer.provideMerge(CheckpointStore.layer.pipe(Layer.provide(VcsDriverRegistryLayerLive))),
 );
 
+// PortScanner reads ServerConfig so it can exclude the editor's own ports from
+// discovered dev servers. ServerConfig is provided by the CLI launch layer, so
+// it is left as a requirement here (see the launch-layer note below).
 const PortScannerLayerLive = PortScanner.layer.pipe(Layer.provide(ProcessRunner.layer));
 
 const TerminalLayerLive = TerminalManager.layer.pipe(

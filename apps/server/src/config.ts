@@ -187,6 +187,69 @@ const makeTest = Effect.fn("ServerConfig.makeTest")(function* (
 export const layerTest = (cwd: string, baseDirOrPrefix: string | { readonly prefix: string }) =>
   Layer.effect(ServerConfig, makeTest(cwd, baseDirOrPrefix));
 
+/**
+ * A fully-defaulted, no-I/O `ServerConfig` value for unit tests that only care
+ * about a handful of fields (for example `port` / `devUrl`). Unlike `layerTest`,
+ * this touches no filesystem and requires no services, so it can back a plain
+ * `Layer.succeed`. Pass `overrides` to set the fields under test.
+ */
+export const makeTestConfig = (
+  overrides: Partial<ServerConfig["Service"]> = {},
+): ServerConfig["Service"] => {
+  const baseDir = "/tmp/t3-server-test";
+  const stateDir = `${baseDir}/userdata`;
+  const logsDir = `${stateDir}/logs`;
+  const providerLogsDir = `${logsDir}/provider`;
+  return {
+    logLevel: "Error",
+    traceMinLevel: "Info",
+    traceTimingEnabled: false,
+    traceBatchWindowMs: 200,
+    traceMaxBytes: 10 * 1024 * 1024,
+    traceMaxFiles: 10,
+    otlpTracesUrl: undefined,
+    otlpMetricsUrl: undefined,
+    otlpExportIntervalMs: 10_000,
+    otlpServiceName: "t3-server",
+    mode: "web",
+    port: 0,
+    host: undefined,
+    cwd: baseDir,
+    baseDir,
+    staticDir: undefined,
+    devUrl: undefined,
+    noBrowser: false,
+    startupPresentation: "browser",
+    desktopBootstrapToken: undefined,
+    autoBootstrapProjectFromCwd: false,
+    logWebSocketEvents: false,
+    tailscaleServeEnabled: false,
+    tailscaleServePort: 443,
+    stateDir,
+    dbPath: `${stateDir}/state.sqlite`,
+    keybindingsConfigPath: `${stateDir}/keybindings.json`,
+    settingsPath: `${stateDir}/settings.json`,
+    providerStatusCacheDir: `${baseDir}/caches`,
+    worktreesDir: `${baseDir}/worktrees`,
+    attachmentsDir: `${stateDir}/attachments`,
+    logsDir,
+    serverLogPath: `${logsDir}/server.log`,
+    serverTracePath: `${logsDir}/server.trace.ndjson`,
+    providerLogsDir,
+    providerEventLogPath: `${providerLogsDir}/events.log`,
+    terminalLogsDir: `${logsDir}/terminals`,
+    anonymousIdPath: `${stateDir}/anonymous-id`,
+    environmentIdPath: `${stateDir}/environment-id`,
+    serverRuntimeStatePath: `${stateDir}/server-runtime.json`,
+    secretsDir: `${stateDir}/secrets`,
+    ...overrides,
+  };
+};
+
+/** No-I/O `ServerConfig` layer for unit tests. See `makeTestConfig`. */
+export const layerTestSync = (overrides: Partial<ServerConfig["Service"]> = {}) =>
+  layer(makeTestConfig(overrides));
+
 export const resolveStaticDir = Effect.fn(function* () {
   const { join, resolve } = yield* Path.Path;
   const { exists } = yield* FileSystem.FileSystem;
