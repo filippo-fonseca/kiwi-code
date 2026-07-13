@@ -132,6 +132,10 @@ import { closePreviewSession } from "./preview/closePreviewSession";
 import { subscribePreviewAction } from "./preview/previewActionBus";
 import { getConfiguredPreviewUrls } from "./preview/previewEmptyStateLogic";
 import { RightPanelTabs } from "./RightPanelTabs";
+import { KiwiDashboard } from "../kiwi/KiwiDashboard";
+import { KiwiStatusBar } from "../kiwi/KiwiStatusBar";
+import { useBgsdStore } from "../kiwi/bgsdStore";
+import { isFixtureFeedEnabled } from "../kiwi/feed";
 import { DiffWorkerPoolProvider } from "./DiffWorkerPoolProvider";
 import { BranchToolbar } from "./BranchToolbar";
 import { resolveShortcutCommand, shortcutLabelForCommand } from "../keybindings";
@@ -2151,6 +2155,10 @@ function ChatViewContent(props: ChatViewProps) {
     terminalUiLaunchContext?.threadId === activeThreadId ? terminalUiLaunchContext : null;
   // Default true while loading to avoid toolbar flicker.
   const isGitRepo = gitStatusQuery.data?.isRepo ?? true;
+  // Kiwi (bgsd Conductor) surface is offered when a bgsd session is available
+  // or the fixture dev-flag is set (so it can be previewed with no server).
+  const kiwiSnapshotAvailable = useBgsdStore((state) => state.snapshot?.available ?? false);
+  const kiwiAvailable = kiwiSnapshotAvailable || isFixtureFeedEnabled();
   const terminalShortcutLabelOptions = useMemo(
     () => ({
       context: {
@@ -2778,6 +2786,10 @@ function ChatViewContent(props: ChatViewProps) {
     if (!activeThreadRef || !activeProject) return;
     useRightPanelStore.getState().open(activeThreadRef, "files");
   }, [activeProject, activeThreadRef]);
+  const addKiwiSurface = useCallback(() => {
+    if (!activeThreadRef) return;
+    useRightPanelStore.getState().open(activeThreadRef, "kiwi");
+  }, [activeThreadRef]);
   const openFileSurface = useCallback(
     (relativePath: string) => {
       if (!activeThreadRef || !activeProject) return;
@@ -4982,6 +4994,8 @@ function ChatViewContent(props: ChatViewProps) {
         timestampFormat={timestampFormat}
         mode="embedded"
       />
+    ) : activeRightPanelSurface?.kind === "kiwi" ? (
+      <KiwiDashboard />
     ) : (activeRightPanelSurface?.kind === "files" || activeRightPanelSurface?.kind === "file") &&
       activeProject &&
       activeWorkspaceRoot ? (
@@ -5139,6 +5153,12 @@ function ChatViewContent(props: ChatViewProps) {
               </div>
               <div className="chat-composer-horizontal-inset">
                 <div className="pointer-events-auto relative z-10 isolate">
+                  <KiwiStatusBar
+                    branch={activeThreadBranch}
+                    additions={gitStatusQuery.data?.workingTree.insertions ?? null}
+                    deletions={gitStatusQuery.data?.workingTree.deletions ?? null}
+                    onOpenKiwi={addKiwiSurface}
+                  />
                   <ComposerBannerStack className="relative z-0" items={composerBannerItems} />
                   <div className="relative z-10">
                     <ChatComposer
@@ -5314,9 +5334,11 @@ function ChatViewContent(props: ChatViewProps) {
           onAddTerminal={addTerminalSurface}
           onAddDiff={addDiffSurface}
           onAddFiles={addFilesSurface}
+          onAddKiwi={addKiwiSurface}
           browserAvailable={isPreviewSupportedInRuntime()}
           diffAvailable={isServerThread && isGitRepo}
           filesAvailable={activeProject !== null}
+          kiwiAvailable={kiwiAvailable}
         >
           {rightPanelContent}
         </RightPanelTabs>
@@ -5341,9 +5363,11 @@ function ChatViewContent(props: ChatViewProps) {
             onAddTerminal={addTerminalSurface}
             onAddDiff={addDiffSurface}
             onAddFiles={addFilesSurface}
+            onAddKiwi={addKiwiSurface}
             browserAvailable={isPreviewSupportedInRuntime()}
             diffAvailable={isServerThread && isGitRepo}
             filesAvailable={activeProject !== null}
+            kiwiAvailable={kiwiAvailable}
           >
             {rightPanelContent}
           </RightPanelTabs>

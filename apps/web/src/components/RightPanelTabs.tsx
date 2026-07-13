@@ -1,6 +1,6 @@
 import type { ContextMenuItem, PreviewSessionSnapshot } from "@t3tools/contracts";
 import { getTerminalLabel } from "@t3tools/shared/terminalLabels";
-import { ClipboardList, FileDiff, Files, Globe2, Plus, TerminalSquare, X } from "lucide-react";
+import { Bot, ClipboardList, FileDiff, Files, Globe2, Plus, TerminalSquare, X } from "lucide-react";
 import {
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
@@ -44,9 +44,11 @@ interface RightPanelTabsProps {
   onAddTerminal: () => void;
   onAddDiff: () => void;
   onAddFiles: () => void;
+  onAddKiwi: () => void;
   browserAvailable: boolean;
   diffAvailable: boolean;
   filesAvailable: boolean;
+  kiwiAvailable: boolean;
   children: ReactNode;
 }
 
@@ -91,11 +93,25 @@ function RightPanelEmptyState(props: {
   onAddTerminal: () => void;
   onAddDiff: () => void;
   onAddFiles: () => void;
+  onAddKiwi: () => void;
   browserAvailable: boolean;
   diffAvailable: boolean;
   filesAvailable: boolean;
+  kiwiAvailable: boolean;
 }) {
   const actions = [
+    ...(props.kiwiAvailable
+      ? [
+          {
+            label: "Kiwi",
+            description: "Watch the bgsd Conductor session.",
+            icon: Bot,
+            available: true,
+            disabledReason: null,
+            onClick: props.onAddKiwi,
+          } as const,
+        ]
+      : []),
     {
       label: "Browser",
       description: "Open a local app or URL.",
@@ -205,6 +221,8 @@ function surfaceTitle(
       );
     case "plan":
       return "Plan";
+    case "kiwi":
+      return "Kiwi";
     case "preview": {
       const snapshot = surface.resourceId ? sessions[surface.resourceId] : null;
       if (!snapshot || snapshot.navStatus._tag === "Idle") return "Browser";
@@ -266,6 +284,8 @@ function SurfaceIcon({
       return <TerminalSquare className="size-3.5 shrink-0" />;
     case "plan":
       return <ClipboardList className="size-3.5 shrink-0" />;
+    case "kiwi":
+      return <Bot className="size-3.5 shrink-0 text-[#7cb342]" />;
   }
 }
 
@@ -442,6 +462,12 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
                   <Plus className="size-4" />
                 </MenuTrigger>
                 <MenuPopup align="start" side="bottom" sideOffset={6} className="min-w-44">
+                  {props.kiwiAvailable ? (
+                    <SurfaceMenuItem available onClick={props.onAddKiwi}>
+                      <Bot className="text-[#7cb342]" />
+                      Kiwi
+                    </SurfaceMenuItem>
+                  ) : null}
                   <SurfaceMenuItem
                     available={props.browserAvailable}
                     disabledReason={SURFACE_DISABLED_REASONS.browser}
@@ -484,9 +510,11 @@ export function RightPanelTabs(props: RightPanelTabsProps) {
             onAddTerminal={props.onAddTerminal}
             onAddDiff={props.onAddDiff}
             onAddFiles={props.onAddFiles}
+            onAddKiwi={props.onAddKiwi}
             browserAvailable={props.browserAvailable}
             diffAvailable={props.diffAvailable}
             filesAvailable={props.filesAvailable}
+            kiwiAvailable={props.kiwiAvailable}
           />
         ) : (
           props.children
