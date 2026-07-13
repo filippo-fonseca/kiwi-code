@@ -143,6 +143,7 @@ import {
   SourceControlRepositoryLookupInput,
 } from "./sourceControl.ts";
 import { VcsError } from "./vcs.ts";
+import { BgsdPush, BgsdSubscribeWorkspaceInput, BgsdWorkspaceError } from "./bgsd.ts";
 
 export const WS_METHODS = {
   // Project registry methods
@@ -232,6 +233,9 @@ export const WS_METHODS = {
   subscribeServerConfig: "subscribeServerConfig",
   subscribeServerLifecycle: "subscribeServerLifecycle",
   subscribeAuthAccess: "subscribeAuthAccess",
+
+  // bgsd (Kiwi Conductor) workspace observation
+  subscribeBgsdWorkspace: "subscribeBgsdWorkspace",
 } as const;
 
 export const WsServerUpsertKeybindingRpc = Rpc.make(WS_METHODS.serverUpsertKeybinding, {
@@ -681,6 +685,13 @@ export const WsSubscribeAuthAccessRpc = Rpc.make(WS_METHODS.subscribeAuthAccess,
   stream: true,
 });
 
+export const WsSubscribeBgsdWorkspaceRpc = Rpc.make(WS_METHODS.subscribeBgsdWorkspace, {
+  payload: BgsdSubscribeWorkspaceInput,
+  success: BgsdPush,
+  error: Schema.Union([BgsdWorkspaceError, EnvironmentAuthorizationError]),
+  stream: true,
+});
+
 export const WsRpcGroup = RpcGroup.make(
   WsServerGetConfigRpc,
   WsServerRefreshProvidersRpc,
@@ -750,4 +761,5 @@ export const WsRpcGroup = RpcGroup.make(
   WsOrchestrationGetArchivedShellSnapshotRpc,
   WsOrchestrationSubscribeShellRpc,
   WsOrchestrationSubscribeThreadRpc,
+  WsSubscribeBgsdWorkspaceRpc,
 );
