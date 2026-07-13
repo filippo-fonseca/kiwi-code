@@ -23,7 +23,7 @@ import type { BgsdPush } from "@t3tools/contracts";
 import { WS_METHODS } from "@t3tools/contracts";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { createEnvironmentRpcSubscriptionAtomFamily } from "@t3tools/client-runtime/state/runtime";
-import { AsyncResult, type Atom, type AtomRegistry } from "effect/unstable/reactivity";
+import { AsyncResult, type Atom } from "effect/unstable/reactivity";
 
 import { connectionAtomRuntime } from "../connection/runtime";
 import { appAtomRegistry } from "../rpc/atomRegistry";
