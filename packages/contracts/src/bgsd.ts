@@ -287,3 +287,25 @@ export const BgsdPush = Schema.Union([
   }),
 ]);
 export type BgsdPush = typeof BgsdPush.Type;
+
+// Subscription wiring for the Kiwi workspace push channel (see rpc.ts).
+// `workspaceRoot` is optional: when omitted the server observes its own
+// configured workspace root (ServerConfig.cwd). Additive to the frozen
+// contract — the on-disk/bridge shapes above are unchanged.
+
+export const BgsdSubscribeWorkspaceInput = Schema.Struct({
+  workspaceRoot: Schema.optional(Schema.NullOr(Schema.String)),
+});
+export type BgsdSubscribeWorkspaceInput = typeof BgsdSubscribeWorkspaceInput.Type;
+
+export class BgsdWorkspaceError extends Schema.TaggedErrorClass<BgsdWorkspaceError>()(
+  "BgsdWorkspaceError",
+  {
+    workspaceRoot: Schema.String,
+    reason: Schema.String,
+  },
+) {
+  override get message(): string {
+    return `bgsd workspace error for '${this.workspaceRoot}': ${this.reason}`;
+  }
+}
