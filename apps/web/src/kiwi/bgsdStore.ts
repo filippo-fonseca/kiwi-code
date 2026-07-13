@@ -42,12 +42,15 @@ interface BgsdStoreState {
   lastSeq: number;
   /** UI: request to reveal the token section of the dashboard. */
   tokenFocusRequestId: number;
+  /** UI: request to open/activate the Kiwi surface on the active thread. */
+  openSurfaceRequestId: number;
 
   applySnapshot: (snapshot: BgsdWorkspaceSnapshot) => void;
   applyEvents: (events: readonly BgsdOutboxEvent[]) => void;
   applyPush: (push: BgsdPush) => void;
   markUnavailable: (reason?: string) => void;
   requestTokenFocus: () => void;
+  requestOpenSurface: () => void;
   reset: () => void;
 }
 
@@ -151,6 +154,7 @@ export const useBgsdStore = create<BgsdStoreState>()((set) => ({
   events: [],
   lastSeq: 0,
   tokenFocusRequestId: 0,
+  openSurfaceRequestId: 0,
 
   applySnapshot: (snapshot) => set(() => ({ snapshot })),
 
@@ -203,7 +207,10 @@ export const useBgsdStore = create<BgsdStoreState>()((set) => ({
 
   requestTokenFocus: () => set((state) => ({ tokenFocusRequestId: state.tokenFocusRequestId + 1 })),
 
-  reset: () => set(() => ({ snapshot: null, events: [], lastSeq: 0 })),
+  requestOpenSurface: () =>
+    set((state) => ({ openSurfaceRequestId: state.openSurfaceRequestId + 1 })),
+
+  reset: () => set(() => ({ snapshot: null, events: [], lastSeq: 0, openSurfaceRequestId: 0 })),
 }));
 
 /**

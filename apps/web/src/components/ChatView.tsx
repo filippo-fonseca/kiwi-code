@@ -2790,6 +2790,12 @@ function ChatViewContent(props: ChatViewProps) {
     if (!activeThreadRef) return;
     useRightPanelStore.getState().open(activeThreadRef, "kiwi");
   }, [activeThreadRef]);
+  // Open the Kiwi surface when requested from the sidebar bgsd section.
+  const kiwiOpenSurfaceRequestId = useBgsdStore((state) => state.openSurfaceRequestId);
+  useEffect(() => {
+    if (kiwiOpenSurfaceRequestId === 0) return;
+    addKiwiSurface();
+  }, [addKiwiSurface, kiwiOpenSurfaceRequestId]);
   const openFileSurface = useCallback(
     (relativePath: string) => {
       if (!activeThreadRef || !activeProject) return;

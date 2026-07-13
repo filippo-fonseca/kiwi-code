@@ -183,6 +183,22 @@ describe("bgsdStore — selectors", () => {
   });
 });
 
+describe("bgsdStore — UI request signals", () => {
+  it("bumps tokenFocusRequestId monotonically", () => {
+    const before = useBgsdStore.getState().tokenFocusRequestId;
+    useBgsdStore.getState().requestTokenFocus();
+    useBgsdStore.getState().requestTokenFocus();
+    expect(useBgsdStore.getState().tokenFocusRequestId).toBe(before + 2);
+  });
+
+  it("bumps openSurfaceRequestId monotonically and resets it", () => {
+    useBgsdStore.getState().requestOpenSurface();
+    expect(useBgsdStore.getState().openSurfaceRequestId).toBeGreaterThan(0);
+    useBgsdStore.getState().reset();
+    expect(useBgsdStore.getState().openSurfaceRequestId).toBe(0);
+  });
+});
+
 describe("FixtureBgsdFeed + connectBgsdFeed", () => {
   it("delivers a snapshot and can be disconnected", async () => {
     const feed = new FixtureBgsdFeed();
