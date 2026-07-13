@@ -59,6 +59,7 @@ import {
   WS_METHODS,
   WsRpcGroup,
 } from "@t3tools/contracts";
+import * as BgsdWorkspaceService from "./bgsd/service.ts";
 import { clamp } from "effect/Number";
 import { HttpRouter, HttpServerRequest, HttpServerRespondable } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
@@ -345,6 +346,7 @@ const RPC_REQUIRED_SCOPE = new Map<string, AuthEnvironmentScope>([
   [WS_METHODS.subscribeServerConfig, AuthOrchestrationReadScope],
   [WS_METHODS.subscribeServerLifecycle, AuthOrchestrationReadScope],
   [WS_METHODS.subscribeAuthAccess, AuthAccessReadScope],
+  [WS_METHODS.subscribeBgsdWorkspace, AuthOrchestrationReadScope],
 ]);
 
 function toAuthAccessStreamEvent(
@@ -411,6 +413,7 @@ const makeWsRpcLayer = (
       const providerMaintenanceRunner = yield* ProviderMaintenanceRunner.ProviderMaintenanceRunner;
       const config = yield* ServerConfig.ServerConfig;
       const lifecycleEvents = yield* ServerLifecycleEvents.ServerLifecycleEvents;
+      const bgsdWorkspaceService = yield* BgsdWorkspaceService.BgsdWorkspaceService;
       const serverSettings = yield* ServerSettings.ServerSettingsService;
       const startup = yield* ServerRuntimeStartup.ServerRuntimeStartup;
       const workspaceEntries = yield* WorkspaceEntries.WorkspaceEntries;
@@ -1822,6 +1825,12 @@ const makeWsRpcLayer = (
               return Stream.concat(Stream.fromIterable(snapshotEvents), liveEvents);
             }),
             { "rpc.aggregate": "server" },
+          ),
+        [WS_METHODS.subscribeBgsdWorkspace]: (input) =>
+          observeRpcStream(
+            WS_METHODS.subscribeBgsdWorkspace,
+            bgsdWorkspaceService.subscribe(input.workspaceRoot ?? config.cwd),
+            { "rpc.aggregate": "bgsd" },
           ),
         [WS_METHODS.subscribeAuthAccess]: (_input) =>
           observeRpcStreamEffect(

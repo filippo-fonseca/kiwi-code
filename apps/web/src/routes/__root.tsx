@@ -48,6 +48,9 @@ import {
   primaryServerWelcomeAtom,
 } from "../state/server";
 import { readProject, setActiveEnvironmentId, useActiveEnvironmentId } from "../state/entities";
+import { connectBgsdFeed } from "../kiwi/bgsdStore";
+import { isFixtureFeedEnabled } from "../kiwi/feed";
+import { bgsdRealFeed } from "../kiwi/realFeed";
 import {
   createKeybindingsUpdateToastController,
   type KeybindingsUpdateToastController,
@@ -402,6 +405,15 @@ function EventRouter() {
     handledConfigEventRef.current = serverConfigEvent;
     handleServerConfigUpdated();
   }, [serverConfigEvent]);
+
+  // Wire the Kiwi surface to the real bgsd workspace push channel, once, at
+  // connection scope (the real feed follows the primary environment and its
+  // reconnects). The fixture wins when its dev flag is set — KiwiDashboard
+  // connects that on mount, so we must not connect the real feed alongside it.
+  useEffect(() => {
+    if (isFixtureFeedEnabled()) return;
+    return connectBgsdFeed(bgsdRealFeed);
+  }, []);
 
   return null;
 }
