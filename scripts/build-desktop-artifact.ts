@@ -1429,7 +1429,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
       protocols: [
         {
           // Deep-link scheme names ("t3code", "t3code-dev") are protocol
-          // identifiers left unchanged (see KIWI-DIVERGENCE.md); only the
+          // identifiers left unchanged (see WHAT_CHANGED_FROM_T3.md); only the
           // user-visible protocol display name is rebranded.
           name: "Kiwi Code",
           schemes: ["t3code", "t3code-dev"],

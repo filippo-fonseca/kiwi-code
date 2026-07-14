@@ -1,5 +1,24 @@
 # AGENTS.md
 
+## Kiwi Code fork context
+
+Kiwi Code is a bgsd-native fork of upstream `pingdotgg/t3code`. It follows an
+additive-only architecture: Kiwi-specific code lives in dedicated modules
+(`apps/web/src/kiwi/`, `apps/server/src/bgsd/`, `packages/contracts/src/bgsd.ts`)
+and touches upstream-owned files as little as possible, so the fork can sync with
+upstream weekly via `git merge upstream/main` with a small, well-documented
+conflict surface.
+
+## Divergence-log rule (required on every PR)
+
+Every PR that changes anything relative to upstream t3code MUST update
+`WHAT_CHANGED_FROM_T3.md` in the same PR: add a row for a newly diverging file,
+update the row when the change moves, and remove the row when the file stops
+diverging (for example, upstream adopts our change). A PR that touches an
+upstream-owned file without updating `WHAT_CHANGED_FROM_T3.md` is incomplete.
+That document is the canonical, exhaustive record of everything Kiwi Code changed
+from upstream, and the map used during each weekly upstream sync.
+
 ## Task Completion Requirements
 
 - `vp check` and `vp run typecheck` must pass before considering tasks completed.
@@ -8,7 +27,7 @@
 
 ## Project Snapshot
 
-T3 Code is a minimal web GUI for using coding agents like Codex and Claude.
+Kiwi Code is a minimal web GUI for using coding agents like Codex and Claude.
 
 This repository is a VERY EARLY WIP. Proposing sweeping changes that improve long-term maintainability is encouraged.
 
