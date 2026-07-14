@@ -2787,28 +2787,15 @@ function useSidebarStageLabel() {
 }
 
 function KiwiWordmark() {
+  // The canonical Kiwi mark is the teal kiwi-bird line icon (sourced from the
+  // owner's hyperpolymath-v2 project). Rendered as a small rounded tile so the
+  // baked dark background reads as an app-icon chip next to the wordmark text.
   return (
-    <svg
-      aria-label="Kiwi"
-      className="h-3 w-auto shrink-0 text-foreground"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Monochrome kiwi-slice mark: outer ring, cream-negative core, radial seeds. */}
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="12" cy="12" r="2.6" fill="currentColor" />
-      <g fill="currentColor">
-        <circle cx="12" cy="4.9" r="0.85" />
-        <circle cx="17.02" cy="6.98" r="0.85" />
-        <circle cx="19.1" cy="12" r="0.85" />
-        <circle cx="17.02" cy="17.02" r="0.85" />
-        <circle cx="12" cy="19.1" r="0.85" />
-        <circle cx="6.98" cy="17.02" r="0.85" />
-        <circle cx="4.9" cy="12" r="0.85" />
-        <circle cx="6.98" cy="6.98" r="0.85" />
-      </g>
-    </svg>
+    <img
+      src="/kiwi-brand-source.png"
+      alt="Kiwi"
+      className="h-4 w-4 shrink-0 rounded-[4px] object-cover"
+    />
   );
 }
 
