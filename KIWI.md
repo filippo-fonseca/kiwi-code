@@ -26,7 +26,7 @@ self-verifying orchestration layer on top of GSD).
   ```
 
 - Every file Kiwi Code diverges from upstream on is enumerated in
-  `KIWI-DIVERGENCE.md`. Keeping that table small and current is what keeps the
+  `WHAT_CHANGED_FROM_T3.md`. Keeping that table small and current is what keeps the
   weekly merge cheap. When a merge conflicts, the divergence table is the map of
   where and why we differ.
 
