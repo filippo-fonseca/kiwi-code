@@ -69,8 +69,8 @@ export function RelayClientInstallDialog() {
           </DialogTitle>
           <DialogDescription>
             {isInstalling
-              ? "Kiwi Code is preparing this environment for secure access through T3 Connect."
-              : "Kiwi Code needs the relay client to make this environment available through T3 Connect."}
+              ? "Kiwi Code is preparing this environment for secure access through Kiwi Connect."
+              : "Kiwi Code needs the relay client to make this environment available through Kiwi Connect."}
           </DialogDescription>
         </DialogHeader>
         <DialogPanel scrollFade={false}>
